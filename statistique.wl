@@ -3,7 +3,7 @@
 BeginPackage["StatSolver`"];
 
 
-z1CI::usage = "This is a test function. \[Sum] x."
+z1CI::usage = "One Sample Z Confidence Interval"
 
 
 Begin["`Private`"];
