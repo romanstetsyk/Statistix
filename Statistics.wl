@@ -13,12 +13,32 @@ MyFunc[param_]:=Print[square[param]]
 
 
 z1CI[]:=Manipulate[
-	DynamicModule[{zcrit,stderr,marerr,llci,ulci,roundZcrit,decZcrit,roundSE,decSE,roundME,decME,roundCI,decCI},
-		zcrit:=Dynamic@If[useRounded,roundZcrit@RealAbs@N@Quantile[NormalDistribution[],(1-conflevel)/2],RealAbs@N@Quantile[NormalDistribution[],(1-conflevel)/2]];
-		stderr:=Dynamic@If[useRounded,roundSE@N[\[Sigma]/Sqrt[n]],N[\[Sigma]/Sqrt[n]]];
-		marerr:=Dynamic@If[useRounded,roundME[Setting[zcrit]*Setting[stderr]],Setting[zcrit]*Setting[stderr]];
-		llci:=Dynamic@If[useRounded,roundCI[xbar-Setting[marerr]],xbar-Setting[marerr]];
-		ulci:=Dynamic@If[useRounded,roundCI[xbar+Setting[marerr]],xbar+Setting[marerr]];
+	DynamicModule[{zcrit, stderr, marerr, llci, ulci, roundZcrit, decZcrit, roundSE, decSE, roundME, decME, roundCI, decCI},
+		zcrit:=Dynamic@If[
+			useRounded,
+			roundZcrit@RealAbs@N@Quantile[NormalDistribution[],(1-conflevel)/2],
+			RealAbs@N@Quantile[NormalDistribution[],(1-conflevel)/2]
+		];
+		stderr:=Dynamic@If[
+			useRounded,
+			roundSE@N[\[Sigma]/Sqrt[n]],
+			N[\[Sigma]/Sqrt[n]]
+		];
+		marerr:=Dynamic@If[
+			useRounded,
+			roundME[Setting[zcrit]*Setting[stderr]],
+			Setting[zcrit]*Setting[stderr]
+		];
+		llci:=Dynamic@If[
+			useRounded,
+			roundCI[xbar-Setting[marerr]],
+			xbar-Setting[marerr]
+		];
+		ulci:=Dynamic@If[
+			useRounded,
+			roundCI[xbar+Setting[marerr]],
+			xbar+Setting[marerr]
+		];
 		
 		Style[Column[{
 		Grid[Transpose@{{"","","Round?"},
