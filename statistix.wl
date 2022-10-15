@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-BeginPackage["StatSolver`"];
+BeginPackage["Statistix`"];
 
 
 z1CI::usage = "One Sample Z Confidence Interval"
