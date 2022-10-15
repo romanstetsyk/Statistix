@@ -8,7 +8,7 @@ Confidence Intervals and Hypothesis Tests calculators
 - Show intermediate results
 - Explore the effect of rounding of intermediate results
 
-![sdf](https://i.imgur.com/54NeEK3.png)
+<img src="https://i.imgur.com/54NeEK3.png" width="500">
 
 ## Instalation
 
