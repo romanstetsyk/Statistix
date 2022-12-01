@@ -10,7 +10,7 @@ Confidence Intervals and Hypothesis Tests calculators
 
 <img src="https://i.imgur.com/54NeEK3.png" width="500">
 
-## Instalation
+## Installation
 
 Clone the repository
 
