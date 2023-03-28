@@ -21,6 +21,9 @@ z2Test::usage = "Two Sample Z-Test"
 t1Test::usage = "One Sample T-Test"
 
 
+t2Test::usage = "Two Sample T-Test"
+
+
 Begin["`Private`"];
 
 
@@ -838,6 +841,162 @@ t1Test[] := Manipulate[
   ,
   {{\[Alpha], 0.05, "Alpha, \[Alpha]"}, InputField[Dynamic[\[Alpha], (If[NumericQ[#] && 0 
     <= # <= 1, \[Alpha] = #])&], FieldSize -> Small]&}
+  ,
+  Delimiter
+  ,
+  Row[{Control @ {{HypShowWork, False, "Show work"}, {False, True}}, 
+    Control @ {{confint, False, "Show CI"}, {False, True}}, Control @ {{pl,
+     False, "Show Plot"}, {False, True}}}, "|"]
+  ,
+  {{useRounded, False, "Use rounded values"}, {False, True}}
+  ,
+  ControlPlacement -> Top
+]
+
+
+t2Test[] := Manipulate[
+  DynamicModule[
+    {\[Mu]0 = 0, ho, ha, df, dfSimple, roundDF, decDF, sp, roundSP, decSP,
+       xdiff, t, p, ttmp, stdError, tcrit, roundT, decT, roundP, decP, roundXdiff,
+       decXdiff, roundTcrit, decTcrit, roundSE, decSE, marerr, llci, ulci}
+    ,
+    (*x1-x2 difference of sample means*)
+    xdiff := Dynamic @ If[useRounded, roundXdiff @ N[x1 - x2], N[x1 -
+       x2]];
+    df := Dynamic @ If[equalVar, n1 + n2 - 2, If[Setting @ dfSimple, 
+      Min[n1, n2] - 1, roundDF @ N[(s1^2 / n1 + s2^2 / n2) ^ 2 / (1 / (n1 -
+       1) * (s1^2 / n1) ^ 2 + 1 / (n2 - 1) * (s2^2 / n2) ^ 2)]]];
+    (*T critical value*)
+    tcrit := Dynamic @ If[useRounded, Switch[ha, "\[NotEqual]", roundTcrit @ Abs
+       @ Quantile[StudentTDistribution[df], \[Alpha] / 2], "<", roundTcrit @ Quantile[
+      StudentTDistribution[df], \[Alpha]], ">", roundTcrit @ Quantile[StudentTDistribution[
+      df], 1 - \[Alpha]]], Switch[ha, "\[NotEqual]", Abs @ Quantile[StudentTDistribution[df],
+       \[Alpha] / 2], "<", Quantile[StudentTDistribution[df], \[Alpha]], ">", Quantile[StudentTDistribution[
+      df], 1 - \[Alpha]]]];
+    (*pooled standard deviation, when equal variances assumed*)
+    sp := Dynamic @ If[useRounded, roundSP @ N[Sqrt[((n1 - 1) s1^2 + 
+      (n2 - 1) s2^2) / (n1 + n2 - 2)]], N[Sqrt[((n1 - 1) s1^2 + (n2 - 1) s2
+      ^2) / (n1 + n2 - 2)]]];
+    (*Standard error of the mean*)
+    stdError := Dynamic[If[equalVar, # @ N[Setting[sp] Sqrt[1 / n1 + 
+      1 / n2]], # @ N[Sqrt[s1^2 / n1 + s2^2 / n2]]]& @ If[useRounded, roundSE,
+       Sequence]];
+    (*T test statistic*)
+    t := Dynamic[If[useRounded, roundT @ N[(xdiff - \[Mu]0) / Setting[stdError
+      ]], N[(xdiff - \[Mu]0) / Setting[stdError]]], TrackedSymbols :> {useRounded,
+       roundT, \[Mu]0, xbar}];
+    (*P value*)
+    p := Dynamic[If[useRounded, Quiet @ Switch[ha, "\[NotEqual]", roundP[2 NProbability[
+      ttmp > RealAbs[Setting @ t], ttmp \[Distributed] StudentTDistribution[Setting @ df
+      ], WorkingPrecision -> 20]], "<", roundP @ NProbability[ttmp < Setting
+       @ t, ttmp \[Distributed] StudentTDistribution[Setting @ df], WorkingPrecision -> 
+      20], ">", roundP @ NProbability[ttmp > Setting @ t, ttmp \[Distributed] StudentTDistribution[
+      Setting @ df], WorkingPrecision -> 20]], Quiet @ Switch[ha, "\[NotEqual]", 2 NProbability[
+      ttmp > RealAbs[Setting @ t], ttmp \[Distributed] StudentTDistribution[Setting @ df
+      ], WorkingPrecision -> 20], "<", NProbability[ttmp < Setting @ t, ttmp
+       \[Distributed] StudentTDistribution[Setting @ df], WorkingPrecision -> 20], ">", 
+      NProbability[ttmp > Setting @ t, ttmp \[Distributed] StudentTDistribution[Setting 
+      @ df], WorkingPrecision -> 20]]], TrackedSymbols :> {useRounded}];
+    (*margin of error of confidence interval*)
+    marerr := Dynamic[Abs[Setting[tcrit]] * Setting[stdError]];
+    (*lower limit of confidence interval*)
+    llci := Dynamic[Setting[xdiff] - Setting[marerr]];
+    (*upper limit of confidence interval*)
+    ulci := Dynamic[Setting[xdiff] + Setting[marerr]];
+    Style[Column[{Grid[{{(*NULL hypothesis*)Dynamic @ Row[{"\!\(\*SubscriptBox[\(H\), \(0\)]\): \!\(\*SubscriptBox[\(\[Mu]\), \(1\)]\)-\!\(\*SubscriptBox[\(\[Mu]\), \(2\)]\) ",
+       PopupMenu[Dynamic[ho, {(ho = #)&, Switch[ho, "=", ha = "\[NotEqual]", "\[GreaterEqual]", ha 
+      = "<", "\[LessEqual]", ha = ">"]&}], {"=", "\[GreaterEqual]", "\[LessEqual]"}], InputField[Dynamic[\[Mu]0], FieldSize
+       -> Tiny]}], Dynamic[If[Setting @ equalVar, "Equal Variances: True. d.f. = \!\(\*SubscriptBox[\(n\), \(1\)]\)+\!\(\*SubscriptBox[\(n\), \(2\)]\)-2",
+       Grid[{{"Equal Variances: False", RadioButtonBar[Dynamic @ dfSimple, 
+      {True -> "d.f.=min(\!\(\*SubscriptBox[\(n\), \(1\)]\),\!\(\*SubscriptBox[\(n\), \(2\)]\))-1",
+       False -> "d.f.=\!\(\*FractionBox[SuperscriptBox[
+RowBox[{\"(\", 
+RowBox[{FractionBox[TemplateBox[{\"s\", \"1\", \"2\"},\n\"Subsuperscript\"], SubscriptBox[\"n\", \"1\"]], \"+\", FractionBox[TemplateBox[{\"s\", \"2\", \"2\"},\n\"Subsuperscript\"], SubscriptBox[\"n\", \"2\"]]}], \")\"}], \"2\"], \(\*FractionBox[\(1\), \(\*SubscriptBox[\(n\), \(1\)] - 1\)] \*SuperscriptBox[
+RowBox[{\"(\", FractionBox[TemplateBox[{\"s\", \"1\", \"2\"},\n\"Subsuperscript\"], SubscriptBox[\"n\", \"1\"]], \")\"}], \"2\"] + \*FractionBox[\(1\), \(\*SubscriptBox[\(n\), \(2\)] - 1\)] \*SuperscriptBox[
+RowBox[{\"(\", FractionBox[TemplateBox[{\"s\", \"2\", \"2\"},\n\"Subsuperscript\"], SubscriptBox[\"n\", \"2\"]], \")\"}], \"2\"]\)]\)"
+      }, Appearance -> "Vertical"]}}, Alignment -> Top]], TrackedSymbols :>
+       {equalVar, dfSimple}]}, {(*Alt hypothesis*)Dynamic @ Row[{"\!\(\*SubscriptBox[\(H\), \(0\)]\): \!\(\*SubscriptBox[\(\[Mu]\), \(1\)]\)-\!\(\*SubscriptBox[\(\[Mu]\), \(2\)]\) ",
+       PopupMenu[Dynamic[ha, {(ha = #)&, Switch[ha, "\[NotEqual]", ho = "=", "<", ho 
+      = "\[GreaterEqual]", ">", ho = "\[LessEqual]"]&}], {"\[NotEqual]", "<", ">"}], InputField[Dynamic[\[Mu]0], FieldSize
+       -> Tiny]}], SpanFromAbove}}, Alignment -> Top, Dividers -> {{2 -> True
+      }}], "", "Two Sample T Test:", "", Grid[Transpose @ {{"", "", "Round?"
+      }, {"\!\(\*SubscriptBox[\(x\), \(1\)]\)-\!\(\*SubscriptBox[\(x\), \(2\)]\)",
+       Dynamic @ roundXdiff @ Setting @ xdiff, createRoundingFunction[roundXdiff,
+       decXdiff, 0.001]}, {"d.f.", Dynamic @ Setting @ df, createRoundingFunction[
+      roundDF, decDF, 0.0001, Dynamic[!dfSimple && !equalVar]]}, {"\!\(\*SubscriptBox[\(s\), \(p\)]\)",
+       Dynamic @ Setting @ sp, createRoundingFunction[roundSP, decSP, 0.0001
+      ]}, {"Std. Error", Dynamic @ roundSE @ Setting @ stdError, createRoundingFunction[
+      roundSE, decSE, 0.0001]}, {"\!\(\*SubscriptBox[\(t\), \(Stat\)]\)", Dynamic
+       @ roundT @ Setting @ t, createRoundingFunction[roundT, decT, 0.01]},
+       {"P-Value", Dynamic @ roundP @ Setting @ p, createRoundingFunction[roundP,
+       decP, 0.0001]}, {"\!\(\*SubscriptBox[\(t\), \(crit\)]\)", Dynamic @ 
+      If[ha == "\[NotEqual]", PlusMinus @ roundTcrit @ Setting @ tcrit, roundTcrit @ 
+      Setting @ tcrit], createRoundingFunction[roundTcrit, decTcrit, 0.001]
+      }}, Alignment -> Left, Dividers -> Center, Spacings -> {Automatic, 1.5
+      }, ItemSize -> {Automatic, Automatic}], Dynamic @ Column[{If[HypShowWork,
+       Column[{Spacer[20], If[equalVar, StringForm["\!\(\*SubscriptBox[\(s\), \(p\)]\) \[LongEqual] \!\(\*SqrtBox[FractionBox[\(\((\*SubscriptBox[\(n\), \(1\)] - 1)\) \*SubsuperscriptBox[\(s\), \(1\), \(2\)] + \((\*SubscriptBox[\(n\), \(2\)] - 1)\) \*SubsuperscriptBox[\(s\), \(2\), \(2\)]\), \(\*SubscriptBox[\(n\), \(1\)] + \*SubscriptBox[\(n\), \(2\)] - 2\)]]\) \[LongEqual] \!\(\*SqrtBox[FractionBox[\(\((`2` - 1)\) \*SuperscriptBox[\(`1`\), \(2\)] + \((`4` - 1)\) \*SuperscriptBox[\(`3`\), \(2\)]\), \(`2` + `4` - 2\)]]\) \[LongEqual] `6`\n\!\(\*SubscriptBox[\(s\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]\) \[LongEqual] \!\(\*SubscriptBox[\(s\), \(p\)]\)\!\(\*SqrtBox[\(\*FractionBox[\(1\), SubscriptBox[\(n\), \(1\)]] + \*FractionBox[\(1\), SubscriptBox[\(n\), \(2\)]]\)]\) \[LongEqual] `6`\!\(\*SqrtBox[\(\*FractionBox[\(1\), \(`2`\)] + \*FractionBox[\(1\), \(`4`\)]\)]\) \[LongEqual] `5`",
+       s1, n1, s2, n2, stdError, sp], StringForm["\!\(\*SubscriptBox[\(s\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SubsuperscriptBox[\(s\), \(1\), \(2\)], SubscriptBox[\(n\), \(1\)]] + \*FractionBox[SubsuperscriptBox[\(s\), \(2\), \(2\)], SubscriptBox[\(n\), \(2\)]]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SuperscriptBox[\(`1`\), \(2\)], \(`2`\)] + \*FractionBox[SuperscriptBox[\(`3`\), \(2\)], \(`4`\)]\)]\) \[LongEqual] `5`",
+       s1, n1, s2, n2, stdError]], StringForm["t \[LongEqual] \!\(\*FractionBox[\(\((\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)])\)\\\ \[LongDash]\\\ \((\*SubscriptBox[\(\[Mu]\), \(1\)] - \*SubscriptBox[\(\[Mu]\), \(2\)])\)\), SubscriptBox[\(s\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]]\) \[LongEqual] \!\(\*FractionBox[\(`1`\\\ \[LongDash]\\\ `2`\), \(`3`\)]\) \[LongEqual] `4`",
+       xdiff, \[Mu]0, stdError, Dynamic @ Setting @ t], StringForm["P(`1` `2`) \[LongEqual] `3`",
+       Switch[ha, "\[NotEqual]", "|t| > ", "<", "t < ", ">", "t > "], If[ha === "\[NotEqual]", 
+      Dynamic @ Abs @ Setting @ t, Dynamic @ Setting @ t], Dynamic[Setting 
+      @ p, TrackedSymbols :> {useRounded, \[Mu]0, ho, ha, t, p, ttmp, stdError,
+       roundT, decT, roundP, decP, roundSE, decSE, df, dfSimple, roundDF, decDF
+      }                           (*Tracked symbold necessary because of                           
+      CPU load*)]]}, AllowScriptLevelChange -> False, Spacings -> 1.5], Nothing
+      ], If[confint, Column[{Spacer[20], StringForm["``", If[ha == "\[NotEqual]", StringForm[
+      "``% CI:", If[FractionalPart[100 - \[Alpha] * 100] == 0, NumberForm[IntegerPart[
+      100 - \[Alpha] * 100]], NumberForm[100 - \[Alpha] * 100]]], StringForm["``% CI:", If[
+      FractionalPart[100 - 2 \[Alpha] * 100] == 0, NumberForm[IntegerPart[100 - 2 
+      \[Alpha] * 100]], NumberForm[100 - 2 \[Alpha] * 100]]]]], Grid[{{"ME", "L.Limit", "U.Limit"
+      }, {marerr, llci, ulci}}, Dividers -> Center, Alignment -> Left, Spacings
+       -> {1, 0.6}, ItemSize -> {Automatic, All}], NumberLinePlot[{Tooltip[
+      Interval[{Setting @ llci, Setting @ ulci}], "(" <> ToString[Setting @
+       llci] <> "," <> ToString[Setting @ ulci] <> ")"], Tooltip[\[Mu]0, "\[Mu]0 = "
+       <> ToString[\[Mu]0]]}, Epilog -> {Red, Line[{{\[Mu]0, 0}, {\[Mu]0, 2}}]}, ImageSize
+       -> Medium]}], Nothing], If[pl, Column[{Spacer[20], Show[Plot[Evaluate
+       @ PDF[StudentTDistribution[Setting @ df], x], {x, -4, 4}, Axes -> {True,
+       False}], Plot[Evaluate @ PDF[StudentTDistribution[Setting @ df], x],
+       {x, -4, 4}, PlotRange -> All, RegionFunction -> Switch[ha, "\[NotEqual]", Function[
+      {x, y}, x < -# || x > #], "<", Function[{x, y}, x < #], ">", Function[
+      {x, y}, x > #]], Filling -> Axis, FillingStyle -> Automatic]& @ Setting[
+      tcrit], Graphics[{Red, Line[{{Dynamic @ Setting @ t, 0.0}, {Dynamic @
+       Setting @ t, Dynamic[0.05 + PDF[StudentTDistribution[Setting @ df], 
+      Dynamic @ Setting @ t]]}}]}], ImageSize -> Medium]}], Nothing]}, ItemSize
+       -> {Automatic, Automatic}, AllowScriptLevelChange -> False]}, AllowScriptLevelChange
+       -> False], "DialogStyle"]
+  ]
+  ,
+  (*controllers*)
+  Style["Two Sample Mean T Test", Bold, Medium]
+  ,
+  OpenerView[{"Conditions", Column[{"The samples must be independent",
+     "Each population has a normal distribution with a known standard deviation",
+     "The samples must be randomly selected"}]}]
+  ,
+  Spacer[1]
+  ,
+  Style["Sample data:", Bold]
+  ,
+  Spacer[0]
+  ,
+  Grid[{{"Sample 1", "Sample 2"}, {Control @ {{x1, 0, "Sample Mean, \!\(\*SubscriptBox[OverscriptBox[\(x\), \(-\)], \(1\)]\)"
+    }, InputField[Dynamic[x1, (If[NumericQ[#], x1 = #])&], FieldSize -> Tiny
+    ]&}, Control @ {{x2, 0, "Sample Mean, \!\(\*SubscriptBox[OverscriptBox[\(x\), \(-\)], \(2\)]\)"
+    }, InputField[Dynamic[x2, (If[NumericQ[#], x2 = #])&], FieldSize -> Tiny
+    ]&}}, {Control @ {{s1, 1, "Sample Std., \!\(\*SubscriptBox[\(s\), \(1\)]\)"
+    }, InputField[Dynamic[s1, (If[# >= 0, s1 = #])&], FieldSize -> Tiny]&
+    }, Control @ {{s2, 1, "Sample Std., \!\(\*SubscriptBox[\(s\), \(2\)]\)"
+    }, InputField[Dynamic[s2, (If[# >= 0, s2 = #])&], FieldSize -> Tiny]&
+    }}, {Control @ {{n1, 10, "Sample Size, \!\(\*SubscriptBox[\(n\), \(1\)]\)"
+    }, InputField[Dynamic[n1, (If[IntegerQ[#] && # > 0, n1 = #])&], FieldSize
+     -> Tiny]&}, Control @ {{n2, 10, "Sample Size, \!\(\*SubscriptBox[\(n\), \(2\)]\)"
+    }, InputField[Dynamic[n2, (If[IntegerQ[#] && # > 0, n2 = #])&], FieldSize
+     -> Tiny]&}}, {Spacer[1], Spacer[1]}, {Control @ {{\[Alpha], 0.05, "Alpha, \[Alpha]"
+    }, InputField[Dynamic[\[Alpha], (If[NumericQ[#] && 0 <= # <= 1, \[Alpha] = #])&], FieldSize
+     -> Tiny]&}, Control @ {{equalVar, False, "Assume equal variances?"},
+     {False, True}}}}, Alignment -> {Right, Automatic, {{1, 1} -> Center,
+     {1, 2} -> Center}}]
   ,
   Delimiter
   ,
