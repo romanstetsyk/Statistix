@@ -34,6 +34,8 @@ In Wolfram Mathematica notebook:
 
 `t1Test[]` - One sample T Test for mean
 
+`t2Test[]` - Two sample T Test for means
+
 ## Roadmap
 
 - Two sample confidence interval calculators
