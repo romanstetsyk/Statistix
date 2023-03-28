@@ -552,72 +552,36 @@ z2Test[] := Manipulate[
             ]}}, Alignment -> Left, Dividers -> Center, Spacings -> {Automatic, 1.5
             }, ItemSize -> {Automatic, Automatic}]
           ,
-          Dynamic @ Column[
-            {
-              If[
-                HypShowWork
-                ,
-                Column[
-                  {
-                    Spacer[20]
-                    ,
-                    StringForm["\!\(\*SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(1\), \(2\)], SubscriptBox[\(n\), \(1\)]] + \*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(2\), \(2\)], SubscriptBox[\(n\), \(2\)]]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SuperscriptBox[\(`1`\), \(2\)], \(`2`\)] + \*FractionBox[SuperscriptBox[\(`3`\), \(2\)], \(`4`\)]\)]\) \[LongEqual] `5`",
-                       \[Sigma]1, n1, \[Sigma]2, n2, stdError]
-                    ,
-                    StringForm["z \[LongEqual] \!\(\*FractionBox[\(\((\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)])\)\\\ \[LongDash]\\\ \((\*SubscriptBox[\(\[Mu]\), \(1\)] - \*SubscriptBox[\(\[Mu]\), \(2\)])\)\), SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]]\) \[LongEqual] \!\(\*FractionBox[\(`1`\\\ \[LongDash]\\\ `2`\), \(`3`\)]\) \[LongEqual] `4`",
-                       xdiff, \[Mu]0, stdError, Dynamic @ Setting @ z]
-                    ,
-                    StringForm[
-                      "P(`1` `2`) \[LongEqual] `3`"
-                      ,
-                      Switch[ha, "\[NotEqual]", "|z| > ", "<", "z < ", ">", "z > "
-                        ]
-                      ,
-                      If[ha === "\[NotEqual]", Dynamic @ Abs @ Setting @ z, Dynamic
-                         @ Setting @ z]
-                      ,
-                      Dynamic[
-                        Setting @ p, TrackedSymbols :> {useRounded, \[Mu]0,
-                           ho, ha, z, p, ztmp, stdError, roundTo1, roundTo2, roundZ, decZ, roundP,
-                           decP, roundSE, decSE}            (*Tracked symbold necessary because
-                           of CPU load                                      *) ]
-                    ]
-                  }
-                  ,
-                  AllowScriptLevelChange -> False
-                  ,
-                  Spacings -> 1.5
-                ]
-                ,
-                Nothing
-              ]
-              ,
-              If[confint, Column[{Spacer[20], StringForm["``", If[ha 
-                == "\[NotEqual]", StringForm["``% CI:", If[FractionalPart[100 - \[Alpha] * 100] == 0, 
-                NumberForm[IntegerPart[100 - \[Alpha] * 100]], NumberForm[100 - \[Alpha] * 100]]], 
-                StringForm["``% CI:", If[FractionalPart[100 - 2 \[Alpha] * 100] == 0, NumberForm[
-                IntegerPart[100 - 2 \[Alpha] * 100]], NumberForm[100 - 2 \[Alpha] * 100]]]]], Grid[
-                {{"ME", "L.Limit", "U.Limit"}, {marerr, llci, ulci}}, Dividers -> Center,
-                 Alignment -> Left, Spacings -> {1, 0.6}, ItemSize -> {Automatic, All
-                }], NumberLinePlot[{Tooltip[Interval[{Setting @ llci, Setting @ ulci}
-                ], "(" <> ToString[Setting @ llci] <> "," <> ToString[Setting @ ulci]
-                 <> ")"], Tooltip[\[Mu]0, "\[Mu]0 = " <> ToString[\[Mu]0]]}, Epilog -> {Red, Line[
-                {{\[Mu]0, 0}, {\[Mu]0, 2}}]}, ImageSize -> Medium]}], Nothing]
-              ,
-              If[pl, Column[{Spacer[20], Show[Plot[Evaluate @ PDF[NormalDistribution[
-                ], x], {x, -4, 4}, Axes -> {True, False}, Epilog -> {Red, Line[{{Dynamic
-                 @ Setting @ z, 0.0}, {Dynamic @ Setting @ z, 0.05 + PDF[NormalDistribution[
-                ], Dynamic @ Setting @ z]}}]}], Plot[Evaluate @ PDF[NormalDistribution[
-                ], x], {x, -4, 4}, PlotRange -> All, RegionFunction -> Switch[ha, "\[NotEqual]",
-                 Function[{x, y}, x < -# || x > #], "<", Function[{x, y}, x < #], ">",
-                 Function[{x, y}, x > #]], Filling -> Axis, FillingStyle -> Automatic
-                ]& @ Setting[zcrit], ImageSize -> Medium]}], Nothing]
-            }
-            ,
-            ItemSize -> {Automatic, Automatic}
-            ,
-            AllowScriptLevelChange -> False
-          ]
+          Dynamic @ Column[{If[HypShowWork, Column[{Spacer[20], StringForm[
+            "\!\(\*SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(1\), \(2\)], SubscriptBox[\(n\), \(1\)]] + \*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(2\), \(2\)], SubscriptBox[\(n\), \(2\)]]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SuperscriptBox[\(`1`\), \(2\)], \(`2`\)] + \*FractionBox[SuperscriptBox[\(`3`\), \(2\)], \(`4`\)]\)]\) \[LongEqual] `5`",
+             \[Sigma]1, n1, \[Sigma]2, n2, stdError], StringForm["z \[LongEqual] \!\(\*FractionBox[\(\((\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)])\)\\\ \[LongDash]\\\ \((\*SubscriptBox[\(\[Mu]\), \(1\)] - \*SubscriptBox[\(\[Mu]\), \(2\)])\)\), SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]]\) \[LongEqual] \!\(\*FractionBox[\(`1`\\\ \[LongDash]\\\ `2`\), \(`3`\)]\) \[LongEqual] `4`",
+             xdiff, \[Mu]0, stdError, Dynamic @ Setting @ z], StringForm["P(`1` `2`) \[LongEqual] `3`",
+             Switch[ha, "\[NotEqual]", "|z| > ", "<", "z < ", ">", "z > "], If[ha === "\[NotEqual]", 
+            Dynamic @ Abs @ Setting @ z, Dynamic @ Setting @ z], Dynamic[Setting 
+            @ p, TrackedSymbols :> {useRounded, \[Mu]0, ho, ha, z, p, ztmp, stdError,
+             roundZ, decZ, roundP, decP, roundSE, decSE}                         
+                                                      (*Tracked symbold necessary
+             because                           of CPU load                                      
+            *)]]}, AllowScriptLevelChange -> False, Spacings -> 1.5], Nothing], If[
+            confint, Column[{Spacer[20], StringForm["``", If[ha == "\[NotEqual]", StringForm[
+            "``% CI:", If[FractionalPart[100 - \[Alpha] * 100] == 0, NumberForm[IntegerPart[
+            100 - \[Alpha] * 100]], NumberForm[100 - \[Alpha] * 100]]], StringForm["``% CI:", If[
+            FractionalPart[100 - 2 \[Alpha] * 100] == 0, NumberForm[IntegerPart[100 - 2 
+            \[Alpha] * 100]], NumberForm[100 - 2 \[Alpha] * 100]]]]], Grid[{{"ME", "L.Limit", "U.Limit"
+            }, {marerr, llci, ulci}}, Dividers -> Center, Alignment -> Left, Spacings
+             -> {1, 0.6}, ItemSize -> {Automatic, All}], NumberLinePlot[{Tooltip[
+            Interval[{Setting @ llci, Setting @ ulci}], "(" <> ToString[Setting @
+             llci] <> "," <> ToString[Setting @ ulci] <> ")"], Tooltip[\[Mu]0, "\[Mu]0 = "
+             <> ToString[\[Mu]0]]}, Epilog -> {Red, Line[{{\[Mu]0, 0}, {\[Mu]0, 2}}]}, ImageSize
+             -> Medium]}], Nothing], If[pl, Column[{Spacer[20], Show[Plot[Evaluate
+             @ PDF[NormalDistribution[], x], {x, -4, 4}, Axes -> {True, False}, Epilog
+             -> {Red, Line[{{Dynamic @ Setting @ z, 0.0}, {Dynamic @ Setting @ z,
+             0.05 + PDF[NormalDistribution[], Dynamic @ Setting @ z]}}]}], Plot[Evaluate
+             @ PDF[NormalDistribution[], x], {x, -4, 4}, PlotRange -> All, RegionFunction
+             -> Switch[ha, "\[NotEqual]", Function[{x, y}, x < -# || x > #], "<", Function[
+            {x, y}, x < #], ">", Function[{x, y}, x > #]], Filling -> Axis, FillingStyle
+             -> Automatic]& @ Setting[zcrit], ImageSize -> Medium]}], Nothing]}, 
+            ItemSize -> {Automatic, Automatic}, AllowScriptLevelChange -> False]
         }
         ,
         AllowScriptLevelChange -> False
@@ -686,7 +650,7 @@ t1Test[] := Manipulate[
     (*Standard error of the mean*)
     stdError := Dynamic @ If[useRounded, roundSE @ N[s / Sqrt[n]], N[
       s / Sqrt[n]]];
-    (*Z test statistic*)
+    (*T test statistic*)
     t := Dynamic[If[useRounded, roundT @ N[(xbar - \[Mu]0) / Setting[stdError
       ]], N[(xbar - \[Mu]0) / Setting[stdError]]], TrackedSymbols :> {useRounded,
        roundT, \[Mu]0, xbar}];
