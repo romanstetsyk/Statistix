@@ -28,6 +28,10 @@ In Wolfram Mathematica notebook:
 
 `p1CI[]` - Interactive One Sample Proportion Confidence Interval Calculator
 
+`z1Test[]` - One sample Z Test for mean
+
+`z2Test[]` - Two sample Z Test for means
+
 ## Roadmap
 
 - Two sample confidence interval calculators
