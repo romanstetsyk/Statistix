@@ -15,6 +15,9 @@ p1CI::usage = "One Sample Proportion Confidence Interval"
 z1Test::usage = "One Sample Z-Test"
 
 
+z2Test::usage = "Two Sample Z-Test"
+
+
 Begin["`Private`"];
 
 
@@ -459,6 +462,194 @@ z1Test[] := Manipulate[
   ,
   {{\[Alpha], 0.05, "Alpha, \[Alpha]"}, InputField[Dynamic[\[Alpha], (If[NumericQ[#] && 0 
     <= # <= 1, \[Alpha] = #])&], FieldSize -> Small]&}
+  ,
+  Delimiter
+  ,
+  Row[{Control @ {{HypShowWork, False, "Show work"}, {False, True}}, 
+    Control @ {{confint, False, "Show CI"}, {False, True}}, Control @ {{pl,
+     False, "Show Plot"}, {False, True}}}, "|"]
+  ,
+  {{useRounded, False, "Use rounded values"}, {False, True}}
+  ,
+  ControlPlacement -> Top
+]
+
+
+z2Test[] := Manipulate[
+  DynamicModule[
+    {\[Mu]0 = 0, ho, ha, xdiff, z, p, ztmp, stdError, zcrit, roundZ, decZ,
+       roundP, decP, roundXdiff, decXdiff, roundZcrit, decZcrit, roundSE, decSE,
+       marerr, llci, ulci}
+    ,
+    (*x1-x2 difference of sample means*)
+    xdiff := Dynamic @ If[useRounded, roundXdiff @ N[x1 - x2], N[x1 -
+       x2]];
+    (*Z critical value*)
+    zcrit := Dynamic @ If[useRounded, Switch[ha, "\[NotEqual]", roundZcrit @ Abs
+       @ Quantile[NormalDistribution[], \[Alpha] / 2], "<", roundZcrit @ Quantile[
+      NormalDistribution[], \[Alpha]], ">", roundZcrit @ Quantile[NormalDistribution[
+      ], 1 - \[Alpha]]], Switch[ha, "\[NotEqual]", Abs @ Quantile[NormalDistribution[], \[Alpha] / 
+      2], "<", Quantile[NormalDistribution[], \[Alpha]], ">", Quantile[NormalDistribution[
+      ], 1 - \[Alpha]]]];
+    (*Standard error of the mean*)
+    stdError := Dynamic @ If[useRounded, roundSE @ N[Sqrt[\[Sigma]1^2 / n1 +
+       \[Sigma]2^2 / n2]], N[Sqrt[\[Sigma]1^2 / n1 + \[Sigma]2^2 / n2]]];
+    (*Z test statistic*)
+    z := Dynamic[If[useRounded, roundZ @ N[(xdiff - \[Mu]0) / Setting[stdError
+      ]], N[(xdiff - \[Mu]0) / Setting[stdError]]], TrackedSymbols :> {useRounded,
+       roundZ, \[Mu]0, xbar}];
+    (*P value*)
+    p := Dynamic[If[useRounded, Quiet @ Switch[ha, "\[NotEqual]", roundP[2 NProbability[
+      ztmp > RealAbs[Setting @ z], ztmp \[Distributed] NormalDistribution[], WorkingPrecision
+       -> 20]], "<", roundP @ NProbability[ztmp < Setting @ z, ztmp \[Distributed] NormalDistribution[
+      ], WorkingPrecision -> 20], ">", roundP @ NProbability[ztmp > Setting
+       @ z, ztmp \[Distributed] NormalDistribution[], WorkingPrecision -> 20]], Quiet @ 
+      Switch[ha, "\[NotEqual]", 2 NProbability[ztmp > RealAbs[Setting @ z], ztmp \[Distributed] NormalDistribution[
+      ], WorkingPrecision -> 20], "<", NProbability[ztmp < Setting @ z, ztmp
+       \[Distributed] NormalDistribution[], WorkingPrecision -> 20], ">", NProbability[ztmp
+       > Setting @ z, ztmp \[Distributed] NormalDistribution[], WorkingPrecision -> 20]]
+      ], TrackedSymbols :> {useRounded}];
+    (*margin of error of confidence interval*)
+    marerr := Dynamic[Abs[Setting[zcrit]] * Setting[stdError]];
+    (*lower limit of confidence interval*)
+    llci := Dynamic[Setting[xdiff] - Setting[marerr]];
+    (*upper limit of confidence interval*)
+    ulci := Dynamic[Setting[xdiff] + Setting[marerr]];
+    Style[
+      Column[
+        { (*NULL hypothesis*)Dynamic @ Row[{"\!\(\*SubscriptBox[\(H\), \(0\)]\): \!\(\*SubscriptBox[\(\[Mu]\), \(1\)]\)-\!\(\*SubscriptBox[\(\[Mu]\), \(2\)]\) ",
+           PopupMenu[Dynamic[ho, {(ho = #)&, Switch[ho, "=", ha = "\[NotEqual]", "\[GreaterEqual]", ha 
+          = "<", "\[LessEqual]", ha = ">"]&}], {"=", "\[GreaterEqual]", "\[LessEqual]"}], InputField[Dynamic[\[Mu]0], FieldSize
+           -> Tiny]}]
+          ,
+          (*Alt hypothesis*)
+          Dynamic @ Row[{"\!\(\*SubscriptBox[\(H\), \(0\)]\): \!\(\*SubscriptBox[\(\[Mu]\), \(1\)]\)-\!\(\*SubscriptBox[\(\[Mu]\), \(2\)]\) ",
+             PopupMenu[Dynamic[ha, {(ha = #)&, Switch[ha, "\[NotEqual]", ho = "=", "<", ho 
+            = "\[GreaterEqual]", ">", ho = "\[LessEqual]"]&}], {"\[NotEqual]", "<", ">"}], InputField[Dynamic[\[Mu]0], FieldSize
+             -> Tiny]}]
+          ,
+          ""
+          ,
+          "Two Sample Z Test:"
+          ,
+          ""
+          ,
+          Grid[Transpose @ {{"", "", "Round?"}, {"\!\(\*SubscriptBox[\(x\), \(1\)]\)-\!\(\*SubscriptBox[\(x\), \(2\)]\)",
+             Dynamic @ roundXdiff @ Setting @ xdiff, createRoundingFunction[roundXdiff,
+             decXdiff, 0.001]}, {"Std. Error", Dynamic @ roundSE @ Setting @ stdError,
+             createRoundingFunction[roundSE, decSE, 0.0001]}, {"\!\(\*SubscriptBox[\(Z\), \(Stat\)]\)",
+             Dynamic @ roundZ @ Setting @ z, createRoundingFunction[roundZ, decZ,
+             0.01]}, {"P-Value", Dynamic @ roundP @ Setting @ p, createRoundingFunction[
+            roundP, decP, 0.0001]}, {"\!\(\*SubscriptBox[\(Z\), \(crit\)]\)", Dynamic
+             @ If[ha == "\[NotEqual]", PlusMinus @ roundZcrit @ Setting @ zcrit, roundZcrit
+             @ Setting @ zcrit], createRoundingFunction[roundZcrit, decZcrit, 0.001
+            ]}}, Alignment -> Left, Dividers -> Center, Spacings -> {Automatic, 1.5
+            }, ItemSize -> {Automatic, Automatic}]
+          ,
+          Dynamic @ Column[
+            {
+              If[
+                HypShowWork
+                ,
+                Column[
+                  {
+                    Spacer[20]
+                    ,
+                    StringForm["\!\(\*SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(1\), \(2\)], SubscriptBox[\(n\), \(1\)]] + \*FractionBox[SubsuperscriptBox[\(\[Sigma]\), \(2\), \(2\)], SubscriptBox[\(n\), \(2\)]]\)]\) \[LongEqual] \!\(\*SqrtBox[\(\*FractionBox[SuperscriptBox[\(`1`\), \(2\)], \(`2`\)] + \*FractionBox[SuperscriptBox[\(`3`\), \(2\)], \(`4`\)]\)]\) \[LongEqual] `5`",
+                       \[Sigma]1, n1, \[Sigma]2, n2, stdError]
+                    ,
+                    StringForm["z \[LongEqual] \!\(\*FractionBox[\(\((\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)])\)\\\ \[LongDash]\\\ \((\*SubscriptBox[\(\[Mu]\), \(1\)] - \*SubscriptBox[\(\[Mu]\), \(2\)])\)\), SubscriptBox[\(\[Sigma]\), \(\*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(1\)] - \*SubscriptBox[OverscriptBox[\(x\), \(\[LongDash]\)], \(2\)]\)]]\) \[LongEqual] \!\(\*FractionBox[\(`1`\\\ \[LongDash]\\\ `2`\), \(`3`\)]\) \[LongEqual] `4`",
+                       xdiff, \[Mu]0, stdError, Dynamic @ Setting @ z]
+                    ,
+                    StringForm[
+                      "P(`1` `2`) \[LongEqual] `3`"
+                      ,
+                      Switch[ha, "\[NotEqual]", "|z| > ", "<", "z < ", ">", "z > "
+                        ]
+                      ,
+                      If[ha === "\[NotEqual]", Dynamic @ Abs @ Setting @ z, Dynamic
+                         @ Setting @ z]
+                      ,
+                      Dynamic[
+                        Setting @ p, TrackedSymbols :> {useRounded, \[Mu]0,
+                           ho, ha, z, p, ztmp, stdError, roundTo1, roundTo2, roundZ, decZ, roundP,
+                           decP, roundSE, decSE}            (*Tracked symbold necessary because
+                           of CPU load                                      *) ]
+                    ]
+                  }
+                  ,
+                  AllowScriptLevelChange -> False
+                  ,
+                  Spacings -> 1.5
+                ]
+                ,
+                Nothing
+              ]
+              ,
+              If[confint, Column[{Spacer[20], StringForm["``", If[ha 
+                == "\[NotEqual]", StringForm["``% CI:", If[FractionalPart[100 - \[Alpha] * 100] == 0, 
+                NumberForm[IntegerPart[100 - \[Alpha] * 100]], NumberForm[100 - \[Alpha] * 100]]], 
+                StringForm["``% CI:", If[FractionalPart[100 - 2 \[Alpha] * 100] == 0, NumberForm[
+                IntegerPart[100 - 2 \[Alpha] * 100]], NumberForm[100 - 2 \[Alpha] * 100]]]]], Grid[
+                {{"ME", "L.Limit", "U.Limit"}, {marerr, llci, ulci}}, Dividers -> Center,
+                 Alignment -> Left, Spacings -> {1, 0.6}, ItemSize -> {Automatic, All
+                }], NumberLinePlot[{Tooltip[Interval[{Setting @ llci, Setting @ ulci}
+                ], "(" <> ToString[Setting @ llci] <> "," <> ToString[Setting @ ulci]
+                 <> ")"], Tooltip[\[Mu]0, "\[Mu]0 = " <> ToString[\[Mu]0]]}, Epilog -> {Red, Line[
+                {{\[Mu]0, 0}, {\[Mu]0, 2}}]}, ImageSize -> Medium]}], Nothing]
+              ,
+              If[pl, Column[{Spacer[20], Show[Plot[Evaluate @ PDF[NormalDistribution[
+                ], x], {x, -4, 4}, Axes -> {True, False}, Epilog -> {Red, Line[{{Dynamic
+                 @ Setting @ z, 0.0}, {Dynamic @ Setting @ z, 0.05 + PDF[NormalDistribution[
+                ], Dynamic @ Setting @ z]}}]}], Plot[Evaluate @ PDF[NormalDistribution[
+                ], x], {x, -4, 4}, PlotRange -> All, RegionFunction -> Switch[ha, "\[NotEqual]",
+                 Function[{x, y}, x < -# || x > #], "<", Function[{x, y}, x < #], ">",
+                 Function[{x, y}, x > #]], Filling -> Axis, FillingStyle -> Automatic
+                ]& @ Setting[zcrit], ImageSize -> Medium]}], Nothing]
+            }
+            ,
+            ItemSize -> {Automatic, Automatic}
+            ,
+            AllowScriptLevelChange -> False
+          ]
+        }
+        ,
+        AllowScriptLevelChange -> False
+      ]
+      ,
+      "DialogStyle"
+    ]
+  ]
+  ,
+  (*controllers*)
+  Style["Two Sample Mean Z Test", Bold, Medium]
+  ,
+  OpenerView[{"Conditions", Column[{"The samples must be independent",
+     "Each population has a normal distribution with a known standard deviation",
+     "The samples must be randomly selected"}]}]
+  ,
+  Spacer[1]
+  ,
+  Style["Sample data:", Bold]
+  ,
+  Spacer[0]
+  ,
+  Grid[{{"Sample 1", "Sample 2"}, {Control @ {{x1, 0, "Sample Mean, \!\(\*SubscriptBox[OverscriptBox[\(x\), \(-\)], \(1\)]\)"
+    }, InputField[Dynamic[x1, (If[NumericQ[#], x1 = #])&], FieldSize -> Tiny
+    ]&}, Control @ {{x2, 0, "Sample Mean, \!\(\*SubscriptBox[OverscriptBox[\(x\), \(-\)], \(2\)]\)"
+    }, InputField[Dynamic[x2, (If[NumericQ[#], x2 = #])&], FieldSize -> Tiny
+    ]&}}, {Control @ {{\[Sigma]1, 1, "Population Std., \!\(\*SubscriptBox[\(\[Sigma]\), \(1\)]\)"
+    }, InputField[Dynamic[\[Sigma]1, (If[# >= 0, \[Sigma]1 = #])&], FieldSize -> Tiny]&
+    }, Control @ {{\[Sigma]2, 1, "Population Std., \!\(\*SubscriptBox[\(\[Sigma]\), \(2\)]\)"
+    }, InputField[Dynamic[\[Sigma]2, (If[# >= 0, \[Sigma]2 = #])&], FieldSize -> Tiny]&
+    }}, {Control @ {{n1, 10, "Sample Size, \!\(\*SubscriptBox[\(n\), \(1\)]\)"
+    }, InputField[Dynamic[n1, (If[IntegerQ[#] && # > 0, n1 = #])&], FieldSize
+     -> Tiny]&}, Control @ {{n2, 10, "Sample Size, \!\(\*SubscriptBox[\(n\), \(2\)]\)"
+    }, InputField[Dynamic[n2, (If[IntegerQ[#] && # > 0, n2 = #])&], FieldSize
+     -> Tiny]&}}, {Spacer[1]}, {Control @ {{\[Alpha], 0.05, "Alpha, \[Alpha]"}, InputField[
+    Dynamic[\[Alpha], (If[NumericQ[#] && 0 <= # <= 1, \[Alpha] = #])&], FieldSize -> Tiny
+    ]&}}}, Alignment -> {Right, Automatic, {{1, 1} -> Center, {1, 2} -> Center
+    }}]
   ,
   Delimiter
   ,
